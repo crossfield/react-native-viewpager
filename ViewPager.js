@@ -200,7 +200,7 @@ var ViewPager = React.createClass({
             currentPage: pageNumber,
           });
         }
-        moved && this.props.onChangePage && this.props.onChangePage(pageNumber);
+        moved && this.props.onChangePage && this.props.onChangePage(pageNumber, event.finished);
       });
   },
 
