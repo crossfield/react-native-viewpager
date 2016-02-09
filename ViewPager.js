@@ -115,6 +115,10 @@ var ViewPager = React.createClass({
       this.childIndex = 1;
       this.state.scrollValue.setValue(1);
     }
+
+    if (this.props.initialPage) {
+      this.goToPage(this.props.initialPage, {animated: false});
+    }
   },
 
   componentDidMount() {
@@ -158,7 +162,7 @@ var ViewPager = React.createClass({
     }
   },
 
-  goToPage(pageNumber) {
+  goToPage(pageNumber, {animated = true} = {}) {
 
     var pageCount = this.props.dataSource.getPageCount();
     if (pageNumber < 0 || pageNumber >= pageCount) {
@@ -167,10 +171,10 @@ var ViewPager = React.createClass({
     }
 
     var step = pageNumber - this.state.currentPage;
-    this.movePage(step);
+    this.movePage(step, undefined, animated);
   },
 
-  movePage(step, gs) {
+  movePage(step, gs, animated = true) {
     var pageCount = this.props.dataSource.getPageCount();
     var pageNumber = this.state.currentPage + step;
 
@@ -190,18 +194,26 @@ var ViewPager = React.createClass({
       nextChildIdx = 1;
     }
 
-    this.props.animation(this.state.scrollValue, scrollStep, gs)
-      .start((event) => {
-        if (event.finished) {
-          this.fling = false;
-          this.childIndex = nextChildIdx;
-          this.state.scrollValue.setValue(nextChildIdx);
-          this.setState({
-            currentPage: pageNumber,
-          });
-        }
-        moved && this.props.onChangePage && this.props.onChangePage(pageNumber, event.finished);
-      });
+    const completion = (finished) => {
+      if (finished) {
+        this.fling = false;
+        this.childIndex = nextChildIdx;
+        this.state.scrollValue.setValue(nextChildIdx);
+        this.setState({
+          currentPage: pageNumber,
+        });
+      }
+      moved && this.props.onChangePage && this.props.onChangePage(pageNumber, finished);
+    };
+
+    if (animated === true) {
+      this.props.animation(this.state.scrollValue, scrollStep, gs)
+        .start(({finished}) => {
+          completion(finished);
+        });
+    } else {
+      completion(true);
+    }
   },
 
   getCurrentPage() {
